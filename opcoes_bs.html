@@ -491,6 +491,7 @@ function drawCalcChart(){
   vline(res.S_raw,"#89b4fa",[4,3],"Spot","left");
   function plot(key,color,width,dash){ ctx.strokeStyle=color; ctx.lineWidth=width; ctx.setLineDash(dash||[]); ctx.beginPath(); data.forEach((d,i)=>{ const x=sx(d.preco),y=sy(d[key]); i===0?ctx.moveTo(x,y):ctx.lineTo(x,y); }); ctx.stroke(); ctx.setLineDash([]); }
   plot("hoje","#89b4fa",1.5,[5,4]); plot("vencimento","#a6e3a1",2.5);
+  attachChartHandlers();
 }
 
 function showCalcTooltip(clientX, clientY){
@@ -509,11 +510,15 @@ function showCalcTooltip(clientX, clientY){
     tt.style.left=lx+"px"; tt.style.top=(my-10)+"px";
   }
 }
-document.addEventListener("mousemove", e => showCalcTooltip(e.clientX, e.clientY));
-document.addEventListener("touchmove", e => {
-  const t=e.touches[0]; showCalcTooltip(t.clientX, t.clientY); e.preventDefault();
-}, {passive:false});
-document.addEventListener("touchend", () => { const tt=$("c-tooltip"); if(tt)tt.style.display="none"; });
+function hideCalcTooltip(){ const tt=$("c-tooltip"); if(tt)tt.style.display="none"; }
+function attachChartHandlers(){
+  const canvas=$("chart"); if(!canvas) return;
+  canvas.addEventListener("mousemove", e => showCalcTooltip(e.clientX, e.clientY));
+  canvas.addEventListener("mouseleave", hideCalcTooltip);
+  canvas.addEventListener("touchstart", e => { const t=e.touches[0]; showCalcTooltip(t.clientX, t.clientY); }, {passive:true});
+  canvas.addEventListener("touchmove",  e => { const t=e.touches[0]; showCalcTooltip(t.clientX, t.clientY); e.preventDefault(); }, {passive:false});
+  canvas.addEventListener("touchend", hideCalcTooltip);
+}
 window.addEventListener("resize",()=>{ if(res)drawCalcChart(); });
 
 // ── PDF export ──
